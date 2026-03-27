@@ -71,7 +71,7 @@ def get_listing_details(listing_id) -> dict:
     # YOUR CODE STARTS HERE
     # ==============================
     
-    base_dir =(os.path.dirname())
+    base_dir =(os.path.dirname(__file__))
     file_path = os.path.join(base_dir, "html_files", f"listing_{listing_id}.html")
 
     with open(file_path, encoding="utf-8-sig") as f:
@@ -80,16 +80,20 @@ def get_listing_details(listing_id) -> dict:
     full_text = soup.get_text(separator=" ")
 
     policy_number = "N/A"
-    policy_match = re.search(r"(STR-\d+|Pending|Exempt)"),full_text, re.IGNORECASE
+    policy_match = re.search(r"(STR-\d+)",full_text, re.IGNORECASE)
     if policy_match:
         policy_number = policy_match.group(1)
+    else:
+        fallback_match = re.search(r"(Pending|Exempt)", full_text, re.IGNORECASE)
+        if fallback_match:
+            policy_number = fallback_match.group(1)
 
     host_type = "Host"
     if re.search(r"superhost", full_text, re.IGNORECASE):
         host_type = "Superhost"
 
     host_name = "N/A"
-    host_match = re.search(r"[Hh]osted by\s+([A-Z, a-z]+)", full_text)
+    host_match = re.search(r"[Hh]osted by\s+([A-Za-z]+)", full_text)
     if host_match:
         host_name = host_match.group(1)
 
@@ -102,9 +106,9 @@ def get_listing_details(listing_id) -> dict:
         room_type = "Shared Room"
 
     location_rating = 0.0
-    location_match = re.search(r"[Ll]ocation\s+(\d.\d)", full_text)
+    location_match = re.search(r"[Ll]ocation\s+(\d\.\d)", full_text)
     if location_match:
-        location_match = float(location_match.group(1))
+        location_rating = float(location_match.group(1))
 
 
     return {
@@ -246,7 +250,9 @@ class TestCases(unittest.TestCase):
     def test_load_listing_results(self):
         # TODO: Check that the number of listings extracted is 18.
         # TODO: Check that the FIRST (title, id) tuple is  ("Loft in Mission District", "1944564").
-        pass
+        self.assertEqual(len(self.listings), 18)
+
+        self.assertEqual(self.listings[0], ("Loft in Mission District", "1944564"))
 
     def test_get_listing_details(self):
         html_list = ["467507", "1550913", "1944564", "4614763", "6092596"]
@@ -257,7 +263,16 @@ class TestCases(unittest.TestCase):
         # 1) Check that listing 467507 has the correct policy number "STR-0005349".
         # 2) Check that listing 1944564 has the correct host type "Superhost" and room type "Entire Room".
         # 3) Check that listing 1944564 has the correct location rating 4.9.
-        pass
+        
+        results = [get_listing_details(lid) for lid in html_list]
+
+        self.assertEqual(results[0]["467507"]["policy_number"], "STR-0005349")
+
+        self.assertEqual(results[2]["1944564"]["host_type"], "Superhost")
+
+        self.assertEqual(results[2]["1944564"]["room_type"], "Entire Room")
+
+        self.assertAlmostEqual(results[2]["1944564"]["location_rating"], 4.9)
 
     def test_create_listing_database(self):
         # TODO: Check that each tuple in detailed_data has exactly 7 elements:
@@ -272,7 +287,7 @@ class TestCases(unittest.TestCase):
         # TODO: Call output_csv() to write the detailed_data to a CSV file.
         # TODO: Read the CSV back in and store rows in a list.
         # TODO: Check that the first data row matches ["Guesthouse in San Francisco", "49591060", "STR-0000253", "Superhost", "Ingrid", "Entire Room", "5.0"].
-
+        
         os.remove(out_path)
 
     def test_avg_location_rating_by_room_type(self):
