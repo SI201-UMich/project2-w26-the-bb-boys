@@ -41,6 +41,9 @@ def load_listing_results(html_path) -> list[tuple]:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
+    base_dir = os.path.dirname(__file__)
+    html_path = os.path.join(base_dir, html_path)
+
     open_file = open(html_path, "r")
     data = open_file.read()
     open_file.close()
@@ -257,7 +260,18 @@ def validate_policy_numbers(data) -> list[str]:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    invalid = []
+
+    for row in data:
+        listing_id = row[1]
+        policy = row[2].strip()
+
+        if policy in ["Pending", "Exempt"]:
+            continue
+        if not re.fullmatch(r"STR-\d+", policy, re.IGNORECASE):
+            invalid.append(listing_id)
+
+    return invalid
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -360,7 +374,8 @@ class TestCases(unittest.TestCase):
     def test_validate_policy_numbers(self):
         # TODO: Call validate_policy_numbers() on detailed_data and save the result into a variable invalid_listings.
         # TODO: Check that the list contains exactly "16204265" for this dataset.
-        pass
+        invalid_listings = validate_policy_numbers(self.detailed_data)
+        self.assertEqual(invalid_listings, ["16204265"])
 
 
 def main():
