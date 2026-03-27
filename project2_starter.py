@@ -1,14 +1,14 @@
 # SI 201 HW4 (Library Checkout System)
 # Your name: Becket Cook, Braden Masternak
-# Your student id:0483 0779, 
-# Your email:becketco@umich.edu
+# Your student id:0483 0779, 4488 5242
+# Your email:becketco@umich.edu , bmastern@umich.edu
 # Who or what you worked with on this homework (including generative AI like ChatGPT):
 # If you worked with generative AI also add a statement for how you used it.
-# e.g.:
+# e.g.: CLause to help debug 
 # Asked ChatGPT for hints on debugging and for suggestions on overall code structure
 #
 # Did your use of GenAI on this assignment align with your goals and guidelines in your Gen AI contract? If not, why?
-#
+#Yes
 # --- ARGUMENTS & EXPECTED RETURN VALUES PROVIDED --- #
 # --- SEE INSTRUCTIONS FOR FULL DETAILS ON METHOD IMPLEMENTATION --- #
 
