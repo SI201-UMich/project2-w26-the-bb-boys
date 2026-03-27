@@ -83,8 +83,7 @@ def get_listing_details(listing_id) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    
-    base_dir =(os.path.dirname(__file__))
+    base_dir = os.path.dirname(__file__)
     file_path = os.path.join(base_dir, "html_files", f"listing_{listing_id}.html")
 
     with open(file_path, encoding="utf-8-sig") as f:
@@ -161,10 +160,17 @@ def create_listing_database(html_path) -> list[tuple]:
     # ==============================
     listing_data = []
     listings = load_listing_results(html_path)
-    for listing in listings:
-        id = listing[1]
-        info = get_listing_details(id)
-        listing_data.append(listing[0], listing[1], info["policy_number"], info["host_type"], info["host_name"], info["room_type"], info["location_rating"])
+    for title, listing_id in listings:
+        info = get_listing_details(listing_id)[listing_id]
+        listing_data.append((
+            title,
+            listing_id,
+            info["policy_number"],
+            info["host_type"],
+            info["host_name"],
+            info["room_type"],
+            info["location_rating"]
+        ))
     return listing_data
     
     # ==============================
@@ -189,7 +195,25 @@ def output_csv(data, filename) -> None:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+
+
+    header = [
+        "listing_title",
+        "listing_id",
+        "policy_number",
+        "host_type",
+        "host_name",
+        "room_type",
+        "location_rating"
+    ]
+
+    sorted_data = sorted(data, key=lambda x: x[6], reverse=True)
+
+    with open(filename, "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.writer(f)
+        writer.writerow(header)
+        writer.writerows(sorted_data)
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -308,7 +332,25 @@ class TestCases(unittest.TestCase):
         # TODO: Read the CSV back in and store rows in a list.
         # TODO: Check that the first data row matches ["Guesthouse in San Francisco", "49591060", "STR-0000253", "Superhost", "Ingrid", "Entire Room", "5.0"].
         
+        output_csv(self.detailed_data, out_path)
+        with open(out_path, encoding="utf-8-sig", newline="") as f:
+            reader = csv.reader(f)
+            rows = list(reader)
+
+        expected_first_data = [
+            "Guesthouse in San Francisco",
+            "49591060",
+            "STR-0000253",
+            "Superhost",
+            "Ingrid",
+            "Entire Room",
+            "5.0",
+        ]
+        self.assertEqual(rows[1], expected_first_data)
+
+
         os.remove(out_path)
+
 
     def test_avg_location_rating_by_room_type(self):
         # TODO: Call avg_location_rating_by_room_type() and save the output.
