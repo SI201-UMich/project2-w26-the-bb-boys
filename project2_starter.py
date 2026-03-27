@@ -95,19 +95,28 @@ def get_listing_details(listing_id) -> dict:
     full_text = soup.get_text(separator=" ")
     html_string = str(soup)
 
+
     policy_number = "N/A"
 
-    policy_match = re.search(r"STR[-\s#]*\d+", full_text, re.IGNORECASE) or \
-                re.search(r"STR[-\s#]*\d+", html_string, re.IGNORECASE)
+
+    policy_match = re.search(r"STR-\d{7}", full_text)
+    if not policy_match:
+        policy_match = re.search(r"STR-\d{7}", html_string)
 
     if policy_match:
-        raw = policy_match.group(0)
-        digits = re.search(r"\d+", raw).group(0)
-        policy_number = f"STR-{digits}"
+        policy_number = policy_match.group(0)
     else:
-        fallback_match = re.search(r"(Pending|Exempt)", full_text, re.IGNORECASE)
-        if fallback_match:
-            policy_number = fallback_match.group(1)
+
+        reversed_match = re.search(r"\d{4}-(\d+)STR", full_text)
+        if not reversed_match:
+            reversed_match = re.search(r"\d{4}-(\d+)STR", html_string)
+        if reversed_match:
+            digits = reversed_match.group(1).zfill(7)  
+            policy_number = f"STR-{digits}"
+        else:
+            fallback_match = re.search(r"Policy number[:\s]+(Pending|Exempt)", full_text, re.IGNORECASE)
+            if fallback_match:
+                policy_number = fallback_match.group(1)
 
     host_type = "Host"
     if re.search(r"superhost", full_text, re.IGNORECASE):
@@ -282,10 +291,10 @@ def validate_policy_numbers(data) -> list[str]:
         listing_id = row[1]
         policy = row[2].strip()
 
-        if policy in ["Pending", "Exempt"]:
+        if policy.lower() in ["pending", "exempt"]:
             continue
 
-        if not re.fullmatch(r"STR-\d+", policy):
+        if not re.fullmatch(r"STR-\d{7}", policy):
             invalid.append(listing_id)
 
     return invalid
@@ -310,7 +319,35 @@ def google_scholar_searcher(query):
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+
+
+
+    base_url = "https://scholar.google.com/scholar"
+    params = {"q": query}
+    headers ={
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/120.0.0.0 Safari/537.36"
+        )
+    }
+    
+    response = requests.get(base_url, params=params, headers=headers)
+    soup = BeautifulSoup(response.text, "html.parser")
+
+    titles = []
+    for result in soup.findAll("h3", class_="gs_rt"):
+
+        title_text = result.get_text(strip=True)
+        title_text = re.sub(r"^\[.*?\]\s*", "", title_text)
+
+        titles.append(title_text)
+
+    return titles
+
+
+
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -394,6 +431,7 @@ class TestCases(unittest.TestCase):
     def test_validate_policy_numbers(self):
         # TODO: Call validate_policy_numbers() on detailed_data and save the result into a variable invalid_listings.
         # TODO: Check that the list contains exactly "16204265" for this dataset.
+
         invalid_listings = validate_policy_numbers(self.detailed_data)
         self.assertEqual(invalid_listings, ["16204265"])
 
