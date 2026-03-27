@@ -93,10 +93,17 @@ def get_listing_details(listing_id) -> dict:
         soup = BeautifulSoup(f, "html.parser")
 
     full_text = soup.get_text(separator=" ")
+    html_string = str(soup)
+
     policy_number = "N/A"
-    policy_match = re.search(r"(STR-\d+)",full_text, re.IGNORECASE)
+
+    policy_match = re.search(r"STR[-\s#]*\d+", full_text, re.IGNORECASE) or \
+                re.search(r"STR[-\s#]*\d+", html_string, re.IGNORECASE)
+
     if policy_match:
-        policy_number = policy_match.group(1)
+        raw = policy_match.group(0)
+        digits = re.search(r"\d+", raw).group(0)
+        policy_number = f"STR-{digits}"
     else:
         fallback_match = re.search(r"(Pending|Exempt)", full_text, re.IGNORECASE)
         if fallback_match:
@@ -267,6 +274,8 @@ def validate_policy_numbers(data) -> list[str]:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
+
+
     invalid = []
 
     for row in data:
@@ -275,10 +284,13 @@ def validate_policy_numbers(data) -> list[str]:
 
         if policy in ["Pending", "Exempt"]:
             continue
-        if not re.fullmatch(r"STR-\d+", policy, re.IGNORECASE):
+
+        if not re.fullmatch(r"STR-\d+", policy):
             invalid.append(listing_id)
 
     return invalid
+
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
