@@ -52,6 +52,7 @@ def load_listing_results(html_path) -> list[tuple]:
         id = listing.find("div", class_ = "t1jojoys dir dir-ltr")["id"]
         match_id = re.search(r"_(\d+)", id)
         tuple_lst.append((title, match_id.group(1)))
+    return tuple_lst
 
 
     # ==============================
