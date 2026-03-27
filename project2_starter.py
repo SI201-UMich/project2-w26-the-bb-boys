@@ -1,7 +1,7 @@
 # SI 201 HW4 (Library Checkout System)
-# Your name:
-# Your student id:
-# Your email:
+# Your name: Becket Cook, Braden Masternak
+# Your student id:0483 0779, 
+# Your email:becketco@umich.edu
 # Who or what you worked with on this homework (including generative AI like ChatGPT):
 # If you worked with generative AI also add a statement for how you used it.
 # e.g.:
@@ -70,7 +70,58 @@ def get_listing_details(listing_id) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    
+    base_dir =(os.path.dirname())
+    file_path = os.path.join(base_dir, "html_files", f"listing_{listing_id}.html")
+
+    with open(file_path, encoding="utf-8-sig") as f:
+        soup = BeautifulSoup(f, "html.parser")
+
+    full_text = soup.get_text(separator=" ")
+
+    policy_number = "N/A"
+    policy_match = re.search(r"(STR-\d+|Pending|Exempt)"),full_text, re.IGNORECASE
+    if policy_match:
+        policy_number = policy_match.group(1)
+
+    host_type = "Host"
+    if re.search(r"superhost", full_text, re.IGNORECASE):
+        host_type = "Superhost"
+
+    host_name = "N/A"
+    host_match = re.search(r"[Hh]osted by\s+([A-Z, a-z]+)", full_text)
+    if host_match:
+        host_name = host_match.group(1)
+
+    room_type = "N/A"
+    if re.search(r"entire\s+(room|home|place|guesthouse|condo|apartment|loft|house|villa|cabin|suite)", full_text, re.IGNORECASE):
+        room_type = "Entire Room"
+    elif re.search(r"private\s+room", full_text, re.IGNORECASE):
+        room_type = "Private Room"
+    elif re.search(r"shared\s+room", full_text, re.IGNORECASE):
+        room_type = "Shared Room"
+
+    location_rating = 0.0
+    location_match = re.search(r"[Ll]ocation\s+(\d.\d)", full_text)
+    if location_match:
+        location_match = float(location_match.group(1))
+
+
+    return {
+        listing_id: {
+            "policy_number": policy_number,
+            "host_type": host_type,
+            "host_name": host_name,
+            "room_type": room_type,
+            "location_rating": location_rating,
+        }
+    }
+
+
+
+
+
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
