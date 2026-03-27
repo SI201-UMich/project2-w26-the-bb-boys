@@ -41,7 +41,19 @@ def load_listing_results(html_path) -> list[tuple]:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    open_file = open(html_path, "r")
+    data = open_file.read()
+    open_file.close()
+    soup = BeautifulSoup(data, "html.parser")
+    tuple_lst = []
+    listings = soup.find_all("div", class_ = "c4mnd7m dir dir-ltr")
+    for listing in listings:
+        title = listing.find("div", class_ = "t1jojoys dir dir-ltr").text
+        id = listing.find("div", class_ = "t1jojoys dir dir-ltr")["id"]
+        match_id = re.search(r"_(\d+)", id)
+        tuple_lst.append((title, match_id.group(1)))
+
+
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -304,6 +316,7 @@ class TestCases(unittest.TestCase):
 def main():
     detailed_data = create_listing_database(os.path.join("html_files", "search_results.html"))
     output_csv(detailed_data, "airbnb_dataset.csv")
+    
 
 
 if __name__ == "__main__":
