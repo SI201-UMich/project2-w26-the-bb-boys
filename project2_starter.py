@@ -93,7 +93,6 @@ def get_listing_details(listing_id) -> dict:
         soup = BeautifulSoup(f, "html.parser")
 
     full_text = soup.get_text(separator=" ")
-
     policy_number = "N/A"
     policy_match = re.search(r"(STR-\d+)",full_text, re.IGNORECASE)
     if policy_match:
@@ -113,7 +112,7 @@ def get_listing_details(listing_id) -> dict:
         host_name = host_match.group(1)
 
     room_type = "N/A"
-    if re.search(r"entire\s+(room|home|place|guesthouse|condo|apartment|loft|house|villa|cabin|suite)", full_text, re.IGNORECASE):
+    if re.search(r"entire\s+\w+", full_text, re.IGNORECASE):
         room_type = "Entire Room"
     elif re.search(r"private\s+room", full_text, re.IGNORECASE):
         room_type = "Private Room"
@@ -239,7 +238,15 @@ def avg_location_rating_by_room_type(data) -> dict:
     # ==============================
     # YOUR CODE STARTS HERE
     # ==============================
-    pass
+    end_dict = {}
+    for info in data:
+        if info[5] not in end_dict:
+            end_dict[info[5]] = [float(info[6])]
+        else:
+            end_dict[info[5]].append(float(info[6]))
+    for key in end_dict:
+        end_dict[key] = sum(end_dict[key])/len(end_dict[key])
+    return end_dict
     # ==============================
     # YOUR CODE ENDS HERE
     # ==============================
@@ -337,7 +344,8 @@ class TestCases(unittest.TestCase):
         # (listing_title, listing_id, policy_number, host_type, host_name, room_type, location_rating)
 
         # TODO: Spot-check the LAST tuple is ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8).
-        pass
+        result = create_listing_database(self.search_results_path)
+        self.assertEqual(result[-1], ("Guest suite in Mission District", "467507", "STR-0005349", "Superhost", "Jennifer", "Entire Room", 4.8))
 
     def test_output_csv(self):
         out_path = os.path.join(self.base_dir, "test.csv")
